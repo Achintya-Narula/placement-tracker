@@ -1,0 +1,6 @@
+data/
+.test-tmp/
+.env
+node_modules/
+*.log
+

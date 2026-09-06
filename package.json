@@ -1,0 +1,14 @@
+{
+  "name": "placement-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Private job-application and follow-up tracker built with TypeScript and Node.js.",
+  "scripts": {
+    "start": "node src/server.ts",
+    "test": "node --test --test-concurrency=1 tests/*.test.ts"
+  },
+  "engines": {
+    "node": ">=22.18"
+  }
+}
