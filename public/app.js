@@ -185,7 +185,7 @@ async function loadApplications() {
 async function changeStatus(id, status) {
   try {
     await api(`/api/applications/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ status }) });
-    await loadApplications();
+    await Promise.all([loadApplications(), loadReminders(true)]);
   } catch (error) {
     byId('applications-message').textContent = error.message;
   }

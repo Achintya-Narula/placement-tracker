@@ -62,6 +62,72 @@ test('scopes application CRUD to the owner and supports search filters', async (
   });
 });
 
+test('rescheduling a follow-up removes its old reminder without affecting another application', async () => {
+  await withStore(async (store) => {
+    const first = createApplication({ company: 'Acme', role: 'Engineer', followUpDate: '2026-09-06' }, 'user-1', new Date(), 'app-1');
+    const second = createApplication({ company: 'Beta', role: 'Developer', followUpDate: '2026-09-06' }, 'user-1', new Date(), 'app-2');
+    await store.addApplication(first);
+    await store.addApplication(second);
+    await store.addReminders([first, second].map((application) => ({
+      id: `${application.id}:2026-09-06`,
+      userId: 'user-1',
+      applicationId: application.id,
+      followUpDate: '2026-09-06',
+      message: `Follow up with ${application.company} about ${application.role}`,
+      createdAt: '2026-09-06T12:00:00.000Z',
+    })));
+
+    await store.replaceApplication('user-1', { ...first, followUpDate: '2026-09-20' });
+
+    assert.deepEqual((await store.listReminders('user-1')).map((reminder) => reminder.id), ['app-2:2026-09-06']);
+  });
+});
+
+test('closing an application removes its outstanding reminder', async () => {
+  await withStore(async (store) => {
+    const application = createApplication({ company: 'Acme', role: 'Engineer', followUpDate: '2026-09-06' }, 'user-1', new Date(), 'app-1');
+    await store.addApplication(application);
+    await store.addReminders([{
+      id: 'app-1:2026-09-06',
+      userId: 'user-1',
+      applicationId: 'app-1',
+      followUpDate: '2026-09-06',
+      message: 'Follow up with Acme about Engineer',
+      createdAt: '2026-09-06T12:00:00.000Z',
+    }]);
+
+    await store.replaceApplication('user-1', { ...application, status: 'REJECTED' });
+
+    assert.deepEqual(await store.listReminders('user-1'), []);
+  });
+});
+
+test('a stale reminder generated before rescheduling or closing cannot be inserted afterward', async () => {
+  await withStore(async (store) => {
+    for (const [id, update] of [
+      ['rescheduled', { followUpDate: '2026-09-20' }],
+      ['closed', { status: 'REJECTED' as const }],
+    ] as const) {
+      const application = createApplication(
+        { company: 'Acme', role: 'Engineer', followUpDate: '2026-09-06' }, 'user-1', new Date(), id,
+      );
+      await store.addApplication(application);
+      const stale = {
+        id: `${id}:2026-09-06`,
+        userId: 'user-1',
+        applicationId: id,
+        followUpDate: '2026-09-06',
+        message: 'Follow up with Acme about Engineer',
+        createdAt: '2026-09-06T12:00:00.000Z',
+      };
+      await store.replaceApplication('user-1', { ...application, ...update });
+
+      assert.deepEqual(await store.addReminders([stale]), []);
+    }
+    assert.deepEqual(await store.listReminders('user-1'), []);
+  });
+});
+
 test('normalizes legacy applications that do not have stage dates', async () => {
   const parent = join(process.cwd(), '.test-tmp');
   await mkdir(parent, { recursive: true });

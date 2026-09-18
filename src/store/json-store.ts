@@ -125,7 +125,12 @@ export class JsonStore {
     return this.#mutate((database) => {
       const index = database.applications.findIndex((item) => item.id === application.id && item.userId === userId);
       if (index === -1) return undefined;
+      const previous = database.applications[index];
       database.applications[index] = application;
+      if (previous.followUpDate !== application.followUpDate || ['OFFER', 'REJECTED'].includes(application.status)) {
+        database.reminders = database.reminders.filter((reminder) =>
+          reminder.applicationId !== application.id || reminder.userId !== userId);
+      }
       return application;
     });
   }
@@ -148,7 +153,13 @@ export class JsonStore {
   async addReminders(reminders: ReminderRecord[]): Promise<ReminderRecord[]> {
     return this.#mutate((database) => {
       const existingIds = new Set(database.reminders.map((reminder) => reminder.id));
-      const added = reminders.filter((reminder) => !existingIds.has(reminder.id));
+      const added = reminders.filter((reminder) => {
+        if (existingIds.has(reminder.id)) return false;
+        const application = database.applications.find((item) =>
+          item.id === reminder.applicationId && item.userId === reminder.userId);
+        return application?.followUpDate === reminder.followUpDate &&
+          application.status !== 'OFFER' && application.status !== 'REJECTED';
+      });
       database.reminders.push(...added);
       return added;
     });

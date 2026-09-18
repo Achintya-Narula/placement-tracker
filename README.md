@@ -2,6 +2,14 @@
 
 A private job-application tracker for managing opportunities, stages, deadlines, and follow-ups. It is intentionally built with Node.js core APIs so the security and persistence behavior is visible rather than hidden behind frameworks.
 
+## Reviewer quick start
+
+This is one full-stack repository: the responsive browser frontend is in [`public/`](public/) and the TypeScript REST backend is in [`src/`](src/). The app uses Node.js core modules and has no external API key or database setup. It demonstrates frontend forms and asynchronous requests, authenticated CRUD, server-side owner checks, workflow validation, and persisted reminders.
+
+With Node.js 22.18+ installed, run `npm test`, then start the app using `JWT_SECRET="choose-a-long-random-secret" npm start` and open `http://127.0.0.1:3000`. Register a local test account, add an application with a follow-up date of today, click **Refresh** under Due reminders, then reschedule the follow-up or mark the application rejected. The old reminder disappears. No real email address is required for this local demonstration.
+
+For a code walkthrough, start with [`public/app.js`](public/app.js) (UI and API calls), [`src/http/api.ts`](src/http/api.ts) (routes and authentication), [`src/domain/application.ts`](src/domain/application.ts) (workflow rules), and [`src/store/json-store.ts`](src/store/json-store.ts) (owner-scoped persistence and reminder consistency). The [`tests/`](tests/) directory exercises the domain, API, UI helpers, and storage behavior.
+
 ## What it demonstrates
 
 - REST API design with consistent JSON errors
@@ -93,4 +101,4 @@ The dashboard uses a single form for create and edit operations. Existing applic
 npm test
 ```
 
-The 19-test suite covers workflow and schedule validation, password and JWT behavior, persistence and legacy-record migration, ownership, editing, search/filtering, reminder idempotency, asynchronous form submission, REST errors, and static-file traversal protection.
+The 22-test suite covers workflow and schedule validation, password and JWT behavior, persistence and legacy-record migration, ownership, editing, search/filtering, reminder idempotency and cleanup after rescheduling or closing an application, protection against stale concurrent reminders, asynchronous form submission, REST errors, and static-file traversal protection.
