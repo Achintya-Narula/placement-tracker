@@ -4,3 +4,6 @@ data/
 node_modules/
 *.log
 
+# Local AI editor configuration
+.agent/
+.antigravity/

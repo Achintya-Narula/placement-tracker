@@ -2,6 +2,12 @@
 
 A private job-application tracker for managing opportunities, stages, deadlines, and follow-ups. It is intentionally built with Node.js core APIs so the security and persistence behavior is visible rather than hidden behind frameworks.
 
+## Dashboard preview
+
+![Placement Tracker dashboard showing application stages, deadlines, and due reminders](docs/dashboard.png)
+
+Screenshot uses fictional sample applications.
+
 ## Reviewer quick start
 
 This is one full-stack repository: the responsive browser frontend is in [`public/`](public/) and the TypeScript REST backend is in [`src/`](src/). The app uses Node.js core modules and has no external API key or database setup. It demonstrates frontend forms and asynchronous requests, authenticated CRUD, server-side owner checks, workflow validation, and persisted reminders.
